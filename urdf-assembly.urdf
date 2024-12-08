@@ -1,0 +1,72 @@
+<?xml version='1.0' encoding='utf-8'?>
+<robot name="urdf-assembly">
+    <link name="base-combined-v1">
+        <inertial>
+            <origin xyz="0.0009645917098837942 0.023410344061044804 -0.0008708967307326614" rpy="0.0 0.0 0.0" />
+            <mass value="5.722096819893475" />
+            <inertia ixx="0.017000252379933457" iyy="0.07404147397135168" izz="0.06139296903176265" ixy="-5.183219021831338e-05" iyz="1.1645102071811968e-05" ixz="7.971285870514327e-06" />
+        </inertial>
+        <visual name="base-combined-v1_visual">
+            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+            <geometry>
+                <mesh filename="meshes/base-combined-v1.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+        </visual>
+        <collision name="base-combined-v1_collision">
+            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+            <geometry>
+                <mesh filename="meshes/base-combined-v1.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+        </collision>
+    </link>
+    <link name="right_back_leg">
+        <inertial>
+            <origin xyz="-0.03909545084656962 0.03875533882886903 -0.011723574894433968" rpy="0.0 -0.0 0.0" />
+            <mass value="0.28781330300213154" />
+            <inertia ixx="0.0002760281340746765" iyy="0.0002754329059902333" izz="0.0005430899325322529" ixy="0.000256540916716438" iyz="1.091528749662318e-05" ixz="-1.092054837849242e-05" />
+        </inertial>
+        <visual name="right_back_leg_visual">
+            <origin xyz="-0.00025978372142393624 -5.3763213715694034e-05 -0.00799999606140834" rpy="-3.141592653589791 1.0299176225354504e-15 -0.7853981633974483" />
+            <geometry>
+                <mesh filename="meshes/right_back_leg.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+        </visual>
+        <collision name="right_back_leg_collision">
+            <origin xyz="-0.00025978372142393624 -5.3763213715694034e-05 -0.00799999606140834" rpy="-3.141592653589791 1.0299176225354504e-15 -0.7853981633974483" />
+            <geometry>
+                <mesh filename="meshes/right_back_leg.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+        </collision>
+    </link>
+    <link name="right_back_knee">
+        <inertial>
+            <origin xyz="0.03833521622561843 -0.03525171186297051 0.004319345720593777" rpy="0.0 -0.0 7.778769097326427e-62" />
+            <mass value="0.39133711148958433" />
+            <inertia ixx="0.00033783850450704554" iyy="0.0004002868757080856" izz="0.0006936126492399393" ixy="0.00033389021410454127" iyz="1.3279503230121791e-05" ixz="-1.482223848121942e-05" />
+        </inertial>
+        <visual name="right_back_knee_visual">
+            <origin xyz="4.724324966787208e-09 1.6594646012890735e-09 -0.0020000039385917566" rpy="2.73129116366224e-15 5.149588112677279e-16 -7.21644966006357e-16" />
+            <geometry>
+                <mesh filename="meshes/right_back_knee.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+        </visual>
+        <collision name="right_back_knee_collision">
+            <origin xyz="4.724324966787208e-09 1.6594646012890735e-09 -0.0020000039385917566" rpy="2.73129116366224e-15 5.149588112677279e-16 -7.21644966006357e-16" />
+            <geometry>
+                <mesh filename="meshes/right_back_knee.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+        </collision>
+    </link>
+    <joint name="base-combined-v1_Revolute-5" type="continuous">
+        <origin xyz="-0.12649499 0.04622836 0.07744255" rpy="-3.1415926535897927 -0.0 0.0" />
+        <parent link="base-combined-v1" />
+        <child link="right_back_leg" />
+        <axis xyz="0.0 7.598088824778261e-16 1.0" />
+    </joint>
+    <joint name="right_back_leg_Revolute-6" type="continuous">
+        <origin xyz="-0.09218367000000004 0.09187012 -0.010300000000000073" rpy="3.1415926535897927 -1.9721522630525654e-31 -4.738704295261863e-30" />
+        <parent link="right_back_leg" />
+        <child link="right_back_knee" />
+        <axis xyz="-1.9721522630525295e-31 -3.944304526105059e-31 1.0" />
+    </joint>
+</robot>
