@@ -1,107 +1,94 @@
 import pybullet as p
-import time
 import pybullet_data
+import time
 import math
 
 # Connect to PyBullet GUI
-p.connect(p.GUI) 
+physicsClient = p.connect(p.GUI)
 p.setAdditionalSearchPath(pybullet_data.getDataPath())
-
-# Set gravity
-p.setGravity(0,0,-10)
+p.setGravity(0,0,-9.81)
 
 # Load a plane
-planeId = p.loadURDF("plane.urdf")
+plane_id = p.loadURDF("plane.urdf")
 
-# Start the robot above the ground
-cubeStartPos = [0,0,0.5]  
-cubeStartOrientation = p.getQuaternionFromEuler([0,0,0])
-robotID = p.loadURDF("urdf-assembly.urdf", cubeStartPos, cubeStartOrientation, flags=p.URDF_USE_INERTIA_FROM_FILE)
+# Rotate 90 degrees about X-axis (red axis)
+roll = math.radians(90)
+pitch = 0
+yaw = 0
+start_orientation = p.getQuaternionFromEuler([roll, pitch, yaw])
 
-p.setRealTimeSimulation(0)
+# Drop the robot slightly above the ground
+start_pos = [0,0,0.5]
+robot_id = p.loadURDF("urdf-assembly.urdf", start_pos, start_orientation)
 
-# Fix the robot's base in the air
-p.createConstraint(
-    parentBodyUniqueId=robotID,
-    parentLinkIndex=-1,
-    childBodyUniqueId=-1,
-    childLinkIndex=-1,
-    jointType=p.JOINT_FIXED,
-    jointAxis=[0,0,0],
-    parentFramePosition=[0,0,0],
-    childFramePosition=[0,0,0.5]
-)
+# Let the robot settle
+for i in range(240*2):
+    p.stepSimulation()
+    time.sleep(1./240.)
 
-num_joints = p.getNumJoints(robotID)
-for i in range(num_joints):
-    info = p.getJointInfo(robotID, i)
-    print("Joint index:", i, "Name:", info[1].decode("utf-8"))
-
-joint_leg = 0   # right_back_leg
-joint_knee = 1  # right_back_knee
-
-# Reset joints
-p.resetJointState(robotID, joint_leg, 0)
-p.resetJointState(robotID, joint_knee, 0)
-
-# Set camera to look from above (top-down view)
+# Adjust the camera: Zoom in, distance=1.5, top-down view or a slight angle
 p.resetDebugVisualizerCamera(
-    cameraDistance=1,   # a bit further to get a good view
-    cameraYaw=0,          # doesn't matter too much from top view, can experiment
-    cameraPitch=-60,      # straight down
-    cameraTargetPosition=[0,0,0.05]
+    cameraDistance=1.5,
+    cameraYaw=0,
+    cameraPitch=-30,  # Slight angle from above
+    cameraTargetPosition=[0,0,0]
 )
 
-def frange(start, stop, step):
-    if step > 0:
-        val = start
-        while val <= stop:
-            yield val
-            val += step
-    else:
-        val = start
-        while val >= stop:
-            yield val
-            val += step
+# Identify joints from the URDF:
+# Based on the provided URDF snippet:
+# Joints (in order they appear):
+# 0: base-combined-v1_Revolute-5       (hip joint back right)
+# 1: right_back_leg_Revolute-6         (knee joint back right)
+# 2: base-combined-v1_Revolute-7       (hip joint front right)
+# 3: right_front_leg_Revolute-8        (knee joint front right)
+# 4: base-combined-v1_Revolute-9       (hip joint front left)
+# 5: left_front_leg_Revolute-10        (knee joint front left)
+# 6: base-combined-v1_Revolute-11      (hip joint back left)
+# 7: left_back_leg_Revolute-12         (knee joint back left)
 
-def move_joint_in_increments(robot_id, joint_index, start_deg, end_deg, step_deg, pause_sec=0.1):
-    start_rad = math.radians(start_deg)
-    end_rad = math.radians(end_deg)
-    step_rad = math.radians(step_deg)
+# We'll assume "leg" joints are the "hip" joints (0,2,4,6) and "knee" joints are (1,3,5,7).
+hip_joints = [0, 2, 4, 6]
+knee_joints = [1, 3, 5, 7]
 
-    if start_rad < end_rad:
-        angle_range = [a for a in frange(start_rad, end_rad, step_rad)]
-    else:
-        angle_range = [a for a in frange(start_rad, end_rad, -step_rad)]
+# A helper function to set joint angles
+def set_joint_angle(robot_id, joint_index, angle_deg):
+    angle_rad = math.radians(angle_deg)
+    p.setJointMotorControl2(
+        bodyUniqueId=robot_id,
+        jointIndex=joint_index,
+        controlMode=p.POSITION_CONTROL,
+        targetPosition=angle_rad,
+        force=1000,
+        positionGain=0.1,
+        velocityGain=0.1
+    )
 
-    for angle in angle_range:
-        p.setJointMotorControl2(
-            bodyUniqueId=robot_id,
-            jointIndex=joint_index,
-            controlMode=p.POSITION_CONTROL,
-            targetPosition=angle,
-            force=1000,
-            positionGain=0.1,
-            velocityGain=0.1
-        )
-        
-        steps = int(240 * pause_sec)
-        for _ in range(steps):
+# We'll create a simple gait cycle:
+# Move joints from -15 to +15 degrees and back.
+# For simplicity, move all hip joints together and all knees together in a cycle.
+
+def cycle_angles(joint_list, min_angle, max_angle, step=5):
+    # From min to max
+    for a in range(min_angle, max_angle+1, step):
+        for j in joint_list:
+            set_joint_angle(robot_id, j, a)
+        # Step simulation
+        for _ in range(240//4):  # short pause
+            p.stepSimulation()
+            time.sleep(1./240.)
+    # From max back to min
+    for a in range(max_angle, min_angle-1, -step):
+        for j in joint_list:
+            set_joint_angle(robot_id, j, a)
+        # Step simulation
+        for _ in range(240//4):
             p.stepSimulation()
             time.sleep(1./240.)
 
-        js = p.getJointState(robot_id, joint_index)
-        print(f"Joint {joint_index} angle (rad): {js[0]:.4f}")
-
-# Move the lower leg joint
-move_joint_in_increments(robotID, joint_leg, 0, 45, 15, pause_sec=0.2)
-move_joint_in_increments(robotID, joint_leg, 45, 0, 15, pause_sec=0.2)
-
-# Move the knee joint
-move_joint_in_increments(robotID, joint_knee, 0, 45, 15, pause_sec=0.2)
-move_joint_in_increments(robotID, joint_knee, 45, 0, 15, pause_sec=0.2)
-
-cubePos, cubeOrn = p.getBasePositionAndOrientation(robotID)
-print("Final base position:", cubePos, "orientation:", cubeOrn)
+# Run a simple gait loop
+# Alternate moving hips and knees:
+for _ in range(3):  # 3 cycles for demonstration
+    cycle_angles(hip_joints, -15, 15, step=5)
+    cycle_angles(knee_joints, -15, 15, step=5)
 
 p.disconnect()
