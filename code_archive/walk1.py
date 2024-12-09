@@ -24,7 +24,7 @@ start_pos = [0,0,0.5]
 robot_id = p.loadURDF("urdf-assembly.urdf", start_pos, start_orientation)
 
 # Let it settle
-for i in range(240*2):
+for i in range(20):
     p.stepSimulation()
     time.sleep(1./240.)
 
