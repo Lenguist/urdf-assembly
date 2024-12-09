@@ -20,7 +20,7 @@ SETTLING_TIME = 0.5           # Settling time in seconds
 SETTLING_STEPS = int(SIMULATION_FPS * SETTLING_TIME)
 
 # Hill Climber Parameters
-MAX_ITERATIONS = 10000         # Maximum number of iterations (adjust as needed)
+MAX_ITERATIONS = 1000       # Maximum number of iterations (adjust as needed)
 MUTATION_RATE = 0.9           # Probability of each parameter being mutated
 MUTATION_SCALE = 0.9         # Scale of mutation (5%)
 
