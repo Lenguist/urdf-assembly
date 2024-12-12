@@ -23,7 +23,7 @@ SETTLING_STEPS = int(SIMULATION_FPS * SETTLING_TIME)
 # Gradient Descent Parameters
 LEARNING_RATE = 0.01          # Step size for parameter updates
 GRADIENT_THRESHOLD = 1e-3    # Threshold for gradient magnitude to stop
-MAX_ITERATIONS = 1000         # Maximum number of iterations
+MAX_ITERATIONS = 100         # Maximum number of iterations
 
 # Logging Parameters
 TRAINING_RUNS_DIR = "training_runs/gradient_descent"  # Directory to store training runs (not backed up with git)

@@ -1,0 +1,7 @@
+{
+    "simulation_fps": 240,
+    "settling_time": 0.5,
+    "max_iterations": 500,
+    "mutation_rate": 0.5,
+    "mutation_scale": 0.5
+}
